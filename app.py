@@ -8,7 +8,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
 
 app = Flask(__name__)
 CORS(app)  # allows requests from your dashboard (you can lock to specific origin later)
@@ -16,19 +15,21 @@ CORS(app)  # allows requests from your dashboard (you can lock to specific origi
 # build a new webdriver for each request (simpler & safer on multi-process)
 def create_driver():
     options = webdriver.ChromeOptions()
-    options.add_argument("--headless=new")              # headless
+    options.add_argument("--headless=new")  # headless mode
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-blink-features=AutomationControlled")
-    # Point to system chromium if available (in Docker we'll install /usr/bin/chromium)
-    chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
+
+    # Use system-installed Chromium (installed via Dockerfile)
+    chrome_bin = "/usr/bin/google-chrome-stable"
     if os.path.exists(chrome_bin):
         options.binary_location = chrome_bin
 
-    service = ChromeService(ChromeDriverManager().install())
+    # Use system-installed chromedriver
+    service = ChromeService(executable_path="/usr/bin/chromedriver")
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(40)
     return driver
@@ -41,7 +42,6 @@ def login_instagram(driver, username, password):
         driver.find_element(By.NAME, "password").send_keys(password + Keys.RETURN)
         time.sleep(6)
     except Exception:
-        # sometimes login UI changes; ignore and continue (will surface errors later)
         time.sleep(4)
 
 def search_hashtag(driver, tag):
@@ -73,7 +73,6 @@ def extract_info(driver, post_url):
     time.sleep(4)
 
     try:
-        # try to grab username shown on post
         username_el = driver.find_element(By.XPATH, '//header//a[contains(@href, "/")]')
         username = username_el.get_attribute("href").split("/")[-2]
     except Exception:
@@ -82,8 +81,7 @@ def extract_info(driver, post_url):
     try:
         caption_el = driver.find_element(By.XPATH, '//div[@data-testid="post-comment-root"]')
         caption = caption_el.text
-    except Exception:
-        # try alternate caption selector
+    except:
         try:
             alt = driver.find_element(By.XPATH, '//div[contains(@class,"C4VMK")]/span')
             caption = alt.text
@@ -91,7 +89,7 @@ def extract_info(driver, post_url):
             caption = ""
 
     bio = ""
-    if username and username != "Unknown":
+    if username != "Unknown":
         try:
             driver.get(f"https://www.instagram.com/{username}/")
             time.sleep(3)
@@ -104,11 +102,11 @@ def extract_info(driver, post_url):
                     bio = meta_desc
                 except:
                     bio = ""
-        except Exception:
+        except:
             bio = ""
 
     numbers = re.findall(r'\+?\d[\d\s\-\(\)]{7,}\d', bio + " " + caption)
-    numbers = list(dict.fromkeys(numbers))  # unique, keep order
+    numbers = list(dict.fromkeys(numbers))  # remove duplicates
 
     return {
         "Username": username,
@@ -147,15 +145,12 @@ def scrape():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
-        try:
-            if driver:
+        if driver:
+            try:
                 driver.quit()
-        except:
-            pass
+            except:
+                pass
 
 if __name__ == "__main__":
-    # local dev fallback
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
-
