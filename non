@@ -1,12 +1,1 @@
-services:
-  - type: web
-    name: insta-render-api
-    env: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
-    envVars:
-      - key: headquater_ai_
-        value: Stevene2025@
-      - key: insta-api
-        value: 47e671969ee1513c6d21a13acf4df4d5
+
