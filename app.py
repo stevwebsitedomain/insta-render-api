@@ -8,7 +8,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
 
 app = Flask(__name__)
 CORS(app)
@@ -26,17 +25,18 @@ def create_driver():
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-blink-features=AutomationControlled")
 
-    # Try common Chromium paths
-    chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium-browser")
+    # Use system-installed Chromium path
+    chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
     if not os.path.exists(chrome_bin):
-        chrome_bin = "/usr/bin/chromium"
-    if os.path.exists(chrome_bin):
-        options.binary_location = chrome_bin
-    else:
-        raise Exception("Chrome/Chromium binary not found")
+        raise Exception(f"Chrome/Chromium binary not found at {chrome_bin}")
+    options.binary_location = chrome_bin
 
-    # Use chromedriver installed by webdriver-manager
-    service = ChromeService(ChromeDriverManager().install())
+    # Use system-installed chromedriver
+    chromedriver_path = "/usr/bin/chromedriver"
+    if not os.path.exists(chromedriver_path):
+        raise Exception(f"ChromeDriver not found at {chromedriver_path}")
+    service = ChromeService(chromedriver_path)
+
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(60)
     return driver
