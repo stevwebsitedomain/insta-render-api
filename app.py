@@ -1,3 +1,4 @@
+# app.py
 import os
 import time
 import re
@@ -25,15 +26,19 @@ def create_driver():
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-blink-features=AutomationControlled")
 
-    # Use system chromium if available
-    chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
+    # Try common Chromium paths
+    chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium-browser")
+    if not os.path.exists(chrome_bin):
+        chrome_bin = "/usr/bin/chromium"
     if os.path.exists(chrome_bin):
         options.binary_location = chrome_bin
+    else:
+        raise Exception("Chrome/Chromium binary not found")
 
     # Use chromedriver installed by webdriver-manager
     service = ChromeService(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
-    driver.set_page_load_timeout(40)
+    driver.set_page_load_timeout(60)
     return driver
 
 # ----------------------------
@@ -65,7 +70,8 @@ def get_post_links(driver, limit=50):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
         new_height = driver.execute_script("return document.body.scrollHeight")
-        if new_height == last_height: break
+        if new_height == last_height:
+            break
         last_height = new_height
     return list(links)[:limit]
 
