@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DDA-TRA</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #f5f8fa;
+            color: #333;
+            position: relative;
+        }
+
+        /* Mobile Header */
+        .mobile-header {
+            display: none;
+            background-color: #000;
+            color: white;
+            padding: 12px 15px;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .mobile-header .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 220px;
+            background-color: #000;
+            color: #fff;
+            padding: 15px 0;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            position: fixed;
+            height: 100vh;
+            z-index: 999;
+            left: 0;
+            top: 0;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 15px 15px;
+            border-bottom: 1px solid #333;
+            margin-bottom: 15px;
+        }
+
+        .profile-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-bottom: 12px;
+            border: 3px solid rgba(211, 225, 55, 1);
+        }
+
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .logo-subtext {
+            font-size: 11px;
+            color: #aaa;
+            text-align: center;
+        }
+
+        .nav {
+            list-style: none;
+            padding: 0 10px;
+            width: 100%;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+            position: relative;
+            width: 100%;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            color: #ddd;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .nav-link i {
+            margin-right: 10px;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .link-text {
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .dropdown-toggle {
+            transition: transform 0.3s;
+            font-size: 12px;
+        }
+
+        .dropdown-toggle.rotated {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            margin-left: 15px;
+            display: none;
+            padding-left: 8px;
+            border-left: 2px solid #333;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 8px 12px;
+            color: #bbb;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+
+        .dropdown-item:hover {
+            background-color: #222;
+            color: #fff;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 220px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background-color: #fff;
+            padding: 15px 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-title span {
+            background: linear-gradient(135deg, #833AB4, #E1306C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(235, 254, 24, 1), rgba(235, 254, 24, 0.7));
+        }
+
+        .user-img i {
+            color: white;
+            font-size: 18px;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: #777;
+        }
+
+        /* Content Area */
+        .content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title i {
+            margin-right: 8px;
+            color: #E1306C;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 180px;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: rgba(235, 254, 24, 1);
+            outline: none;
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, rgba(235, 254, 24, 1), #E1306C);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        /* New Progress Notice */
+        .progress-notice {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #2196f3;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-icon-container {
+            position: relative;
+            margin-right: 20px;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .progress-icon-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #e3f2fd;
+            box-shadow: 0 0 0 4px #bbdefb;
+        }
+        
+        .progress-icon {
+            font-size: 24px;
+            color: #2196f3;
+            z-index: 2;
+            animation: spin 1.5s linear infinite;
+        }
+        
+        .progress-content {
+            flex: 1;
+        }
+        
+        .progress-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1565c0;
+            margin-bottom: 6px;
+        }
+        
+        .progress-text {
+            color: #1976d2;
+            font-weight: 500;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .progress-status {
+            display: flex;
+            align-items: center;
+            color: #0d47a1;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .progress-dots {
+            display: flex;
+            margin-left: 8px;
+        }
+        
+        .progress-dots span {
+            width: 6px;
+            height: 6px;
+            background: #2196f3;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: bounce 1.5s infinite;
+        }
+        
+        .progress-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .progress-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .results-container {
+            margin-top: 20px;
+        }
+
+        .results-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #fdfcfb, #f5f8fa);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-left: 3px solid #E1306C;
+            transition: all 0.3s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .username {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .phone {
+            color: #E1306C;
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .phone i {
+            margin-right: 6px;
+        }
+
+        .bio {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loader-spinner {
+            width: 35px;
+            height: 35px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #E1306C;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            padding: 12px 20px;
+            background: #333;
+            color: white;
+            border-radius: 6px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 60px;
+            }
+            .logo-text, .logo-subtext, .link-text {
+                display: none;
+            }
+            .profile-image {
+                width: 45px;
+                height: 45px;
+            }
+            .nav-link i {
+                margin-right: 0;
+                font-size: 18px;
+            }
+            .nav-link {
+                justify-content: center;
+                padding: 12px;
+            }
+            .dropdown-menu {
+                position: absolute;
+                left: 60px;
+                background: #000;
+                width: 180px;
+                border-radius: 6px;
+                padding: 8px;
+                margin-left: 0;
+                z-index: 100;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+            .main-content {
+                margin-left: 60px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+                width: 220px;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .sidebar-overlay.show {
+                display: block;
+            }
+            
+            .logo-text, .logo-subtext, .link-text {
+                display: block;
+            }
+            
+            .profile-image {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .nav-link {
+                justify-content: space-between;
+                padding: 10px 12px;
+            }
+            
+            .nav-link i {
+                margin-right: 10px;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .header {
+                padding: 12px 15px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .page-title {
+                font-size: 20px;
+            }
+            
+            .user-info {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .content {
+                padding: 15px 12px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+            
+            .search-btn {
+                width: 100%;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .progress-notice {
+                flex-direction: column;
+                text-align: center;
+                padding: 15px;
+            }
+            
+            .progress-icon-container {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 18px;
+            }
+            
+            .card-title {
+                font-size: 16px;
+            }
+            
+            .user-details {
+                display: none;
+            }
+            
+            .dropdown-menu {
+                width: 160px;
+            }
+            
+            .progress-icon-container {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .progress-icon {
+                font-size: 20px;
+            }
+            
+            .progress-title {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <div class="logo-text">DDA-KINONDONI</div>
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="profile-section">
+            <div class="profile-image">
+                <img src="dda.jpeg" alt="Profile Image" onerror="this.src='data:image/svg+xml;charset=UTF-8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ddd%22/><text x=%2250%22 y=%2250%22 font-size=%2250%22 text-anchor=%22middle%22 dominant-baseline=%22central%22>🏦</text></svg>'">
+            </div>
+            <div class="logo-text">DDA-KINONDONI</div>
+            <div class="logo-subtext">Data Scraping Expert</div>
+        </div>
+
+        <ul class="nav">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">
+                    <i class="fas fa-home"></i>
+                    <span class="link-text">Dashboard</span>
+                    <i class="fas fa-chevron-down dropdown-toggle"></i>
+                </a>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">Overview</a>
+                    <a href="#" class="dropdown-item">Analytics</a>
+                    <a href="#" class="dropdown-item">Reports</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-search"></i>
+                    <span class="link-text">Search</span>
+                    <i class="fas fa-chevron-down dropdown-toggle"></i>
+                </a>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">Basic Search</a>
+                    <a href="#" class="dropdown-item">Advanced Search</a>
+                    <a href="#" class="dropdown-item">Search History</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="link-text">Statistics</span>
+                    <i class="fas fa-chevron-down dropdown-toggle"></i>
+                </a>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">Performance</a>
+                    <a href="#" class="dropdown-item">User Stats</a>
+                    <a href="#" class="dropdown-item">Engagement</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-database"></i>
+                    <span class="link-text">Data</span>
+                    <i class="fas fa-chevron-down dropdown-toggle"></i>
+                </a>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">All Data</a>
+                    <a href="#" class="dropdown-item">Filter Data</a>
+                    <a href="#" class="dropdown-item">Export Data</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-cog"></i>
+                    <span class="link-text">Settings</span>
+                    <i class="fas fa-chevron-down dropdown-toggle"></i>
+                </a>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">Account Settings</a>
+                    <a href="#" class="dropdown-item">Privacy</a>
+                    <a href="#" class="dropdown-item">Notifications</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-download"></i>
+                    <span class="link-text">Download Data</span>
+                    <i class="fas fa-chevron-down dropdown-toggle"></i>
+                </a>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">CSV Format</a>
+                    <a href="#" class="dropdown-item">Excel Format</a>
+                    <a href="#" class="dropdown-item">JSON Format</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-upload"></i>
+                    <span class="link-text">Upload Data</span>
+                    <i class="fas fa-chevron-down dropdown-toggle"></i>
+                </a>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">From Computer</a>
+                    <a href="#" class="dropdown-item">From Cloud</a>
+                    <a href="#" class="dropdown-item">Import Settings</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-question-circle"></i>
+                    <span class="link-text">Help</span>
+                    <i class="fas fa-chevron-down dropdown-toggle"></i>
+                </a>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">Documentation</a>
+                    <a href="#" class="dropdown-item">Support</a>
+                    <a href="#" class="dropdown-item">Contact Us</a>
+                </div>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="page-title">TRA OPEN SOURCE INTELLIGENCE <span>  (TOSI) </span></h1>
+            <div class="user-info">
+                <div class="user-img">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <div class="user-name">DIGITAL BLOCK </div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="content">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-search"></i> Search Instagram Data</h2>
+                <div class="search-container">
+                    <input type="text" class="search-input" id="hashtag-input" placeholder="Enter hashtag to search (e.g., viatutanzania)">
+                    <button class="search-btn" id="search-btn">Search</button>
+                </div>
+                
+                <!-- New Progress Notice -->
+                <div class="progress-notice">
+                    <div class="progress-icon-container">
+                        <div class="progress-icon-bg"></div>
+                        <div class="progress-icon">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                    </div>
+                    <div class="progress-content">
+                        <div class="progress-title">System In Progress</div>
+                        <div class="progress-text">
+                           This system is currently under development. Professor Steve, also known as Master Code, is working hard to improve our services. Please be patient as we complete the development process...
+                        </div>
+                        <div class="progress-status">
+                            Development in progress
+                            <div class="progress-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <p style="font-size: 14px; margin-top: 15px;">Enter a hashtag without the # symbol. The system will scrape Instagram for posts with this hashtag and extract user information.</p>
+            </div>
+
+            <div class="loader" id="loader">
+                <div class="loader-spinner"></div>
+                <p style="font-size: 14px;">Scraping Instagram data. This may take a few minutes...</p>
+            </div>
+
+            <div class="results-container" id="results-container">
+                <h3 class="results-title">Search Results</h3>
+                <div class="results-grid" id="results-grid">
+                    <!-- Results will be displayed here -->
+                  
+                    
+                  
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="notification" id="notification">Search completed successfully!</div>
+<script>
+    // Mobile menu toggle
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('show');
+        sidebarOverlay.classList.toggle('show');
+    });
+
+    sidebarOverlay.addEventListener('click', () => {
+        sidebar.classList.remove('show');
+        sidebarOverlay.classList.remove('show');
+    });
+
+    // Dropdown menu functionality
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (this.querySelector('.dropdown-toggle')) {
+                e.preventDefault();
+                document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                    if (menu !== this.nextElementSibling) {
+                        menu.classList.remove('show');
+                        const toggle = menu.previousElementSibling.querySelector('.dropdown-toggle');
+                        if (toggle) toggle.classList.remove('rotated');
+                    }
+                });
+
+                const dropdown = this.nextElementSibling;
+                if (dropdown && dropdown.classList.contains('dropdown-menu')) {
+                    dropdown.classList.toggle('show');
+                    this.querySelector('.dropdown-toggle').classList.toggle('rotated');
+                }
+            }
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.nav-item')) {
+            document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+            document.querySelectorAll('.dropdown-toggle').forEach(toggle => toggle.classList.remove('rotated'));
+        }
+    });
+
+    // Show notification
+    function showNotification(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.style.background = type === 'success' ? '#333' : '#E1306C';
+        notification.classList.add('show');
+        setTimeout(() => notification.classList.remove('show'), 3000);
+    }
+
+    // Search functionality with Flask API
+    async function performSearch() {
+        const hashtag = document.getElementById('hashtag-input').value.trim();
+        if (!hashtag) {
+            showNotification('Please enter a hashtag', 'error');
+            return;
+        }
+
+        const loader = document.getElementById('loader');
+        const container = document.getElementById('results-container');
+        loader.style.display = 'block';
+        container.style.opacity = '0.5';
+
+        try {
+            const apiUrl = "https://insta-render-api-2.onrender.com/scrape";
+
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ hashtag, limit: 5 }) // small limit to avoid timeout
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`HTTP ${response.status}: ${text}`);
+            }
+
+            const data = await response.json();
+
+            const resultsGrid = document.getElementById('results-grid');
+            resultsGrid.innerHTML = "";
+
+            if (Array.isArray(data) && data.length > 0) {
+                data.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'result-card';
+                    card.innerHTML = `
+                        <div class="username">@${item.Username}</div>
+                        <div class="phone"><i class="fas fa-phone"></i> ${item["Phone Numbers"] || 'N/A'}</div>
+                        <div class="bio">${item.Bio || 'No bio available'}</div>
+                    `;
+                    resultsGrid.appendChild(card);
+                });
+                showNotification(`Found ${data.length} results for #${hashtag}`);
+            } else if (data.error) {
+                showNotification(data.error, "error");
+            } else {
+                showNotification('No results found', 'error');
+            }
+
+        } catch (err) {
+            console.error(err);
+            showNotification(`Error fetching data: ${err.message}`, 'error');
+        } finally {
+            loader.style.display = 'none';
+            container.style.opacity = '1';
+        }
+    }
+
+    // Bind search button and Enter key
+    document.getElementById('search-btn').addEventListener('click', performSearch);
+    document.getElementById('hashtag-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') performSearch();
+    });
+</script>
+
+</body>
+</html>
