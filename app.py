@@ -1,3 +1,4 @@
+# app.py
 import os
 import time
 import re
@@ -25,14 +26,14 @@ def create_driver():
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-blink-features=AutomationControlled")
 
-    # Try common Chromium paths
-    chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
+    # Detect Chrome binary
+    chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium-browser")
     if os.path.exists(chrome_bin):
         options.binary_location = chrome_bin
     else:
-        raise Exception("Chrome/Chromium binary not found")
+        raise Exception(f"Chrome/Chromium binary not found at {chrome_bin}")
 
-    # Use chromedriver installed by webdriver-manager
+    # Setup driver
     service = ChromeService(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(60)
