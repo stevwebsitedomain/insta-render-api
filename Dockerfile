@@ -8,23 +8,23 @@ ENV PORT=10000
 ENV CHROME_BIN=/usr/bin/chromium
 ENV DISPLAY=:99
 
-# Install system dependencies and Chromium 114
+# Install system dependencies + Chromium + driver
 RUN apt-get update && apt-get install -y \
     wget gnupg2 ca-certificates unzip \
     fonts-liberation libnss3 libxss1 libasound2 libatk1.0-0 libatk-bridge2.0-0 \
     libgtk-3-0 libgbm1 libx11-xcb1 libxcomposite1 libxcursor1 libxdamage1 \
-    libxrandr2 libappindicator3-1 libdbus-1-3 curl chromium=114* chromium-driver=114* \
+    libxrandr2 libappindicator3-1 libdbus-1-3 curl chromium chromium-driver \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Install Python dependencies
+# Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Copy app source
+# Copy app source code
 COPY . .
 
 # Expose port
