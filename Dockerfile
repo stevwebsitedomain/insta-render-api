@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=10000
 
-# Install system deps and chromium
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     wget gnupg2 ca-certificates unzip \
     fonts-liberation libnss3 libxss1 libasound2 \
@@ -14,9 +14,15 @@ RUN apt-get update && apt-get install -y \
     libdbus-1-3 curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install chromium (Debian bundles chromium)
-RUN apt-get update && apt-get install -y chromium chromium-driver && rm -rf /var/lib/apt/lists/*
+# Install Google Chrome 114 explicitly to match ChromeDriver
+RUN wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.199-1_amd64.deb \
+    && dpkg -i google-chrome-stable_114.0.5735.199-1_amd64.deb || apt-get -f install -y \
+    && rm google-chrome-stable_114.0.5735.199-1_amd64.deb
 
+# Install Chromium driver
+RUN apt-get update && apt-get install -y chromium-driver && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
 WORKDIR /app
 
 # Copy requirements & install
@@ -24,10 +30,11 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Copy app
+# Copy app code
 COPY . .
 
+# Expose port
 EXPOSE ${PORT}
 
-# Use PORT env variable that Render provides
+# Run app with gunicorn using Render PORT variable
 CMD ["bash", "-lc", "gunicorn --bind 0.0.0.0:${PORT} app:app --workers 1 --threads 4"]
