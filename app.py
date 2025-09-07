@@ -1,4 +1,3 @@
-# app.py
 import os
 import time
 import re
@@ -26,14 +25,12 @@ def create_driver():
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-blink-features=AutomationControlled")
 
-    # Detect Chrome binary
     chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium-browser")
     if os.path.exists(chrome_bin):
         options.binary_location = chrome_bin
     else:
         raise Exception(f"Chrome/Chromium binary not found at {chrome_bin}")
 
-    # Setup driver
     service = ChromeService(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(60)
@@ -68,7 +65,8 @@ def get_post_links(driver, limit=50):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
         new_height = driver.execute_script("return document.body.scrollHeight")
-        if new_height == last_height: break
+        if new_height == last_height:
+            break
         last_height = new_height
     return list(links)[:limit]
 
@@ -78,7 +76,8 @@ def extract_info(driver, post_url):
     try:
         username_el = driver.find_element(By.XPATH, '//header//a[contains(@href, "/")]')
         username = username_el.get_attribute("href").split("/")[-2]
-    except: username = "Unknown"
+    except:
+        username = "Unknown"
 
     try:
         caption_el = driver.find_element(By.XPATH, '//div[@data-testid="post-comment-root"]')
@@ -87,7 +86,8 @@ def extract_info(driver, post_url):
         try:
             alt = driver.find_element(By.XPATH, '//div[contains(@class,"C4VMK")]/span')
             caption = alt.text
-        except: caption = ""
+        except:
+            caption = ""
 
     bio = ""
     if username != "Unknown":
@@ -101,7 +101,10 @@ def extract_info(driver, post_url):
                 try:
                     meta_desc = driver.find_element(By.XPATH, '//meta[@name="description"]').get_attribute('content')
                     bio = meta_desc
-                except: bio = ""
+                except:
+                    bio = ""
+        except:
+            bio = ""
 
     numbers = re.findall(r'\+?\d[\d\s\-\(\)]{7,}\d', bio + " " + caption)
     numbers = list(dict.fromkeys(numbers))
@@ -145,8 +148,10 @@ def scrape():
         return jsonify({"error": str(e)}), 500
     finally:
         if driver:
-            try: driver.quit()
-            except: pass
+            try:
+                driver.quit()
+            except:
+                pass
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
