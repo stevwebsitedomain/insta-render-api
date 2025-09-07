@@ -1,4 +1,3 @@
-# app.py
 import os
 import time
 import re
@@ -8,6 +7,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
 
 app = Flask(__name__)
 CORS(app)
@@ -25,18 +25,15 @@ def create_driver():
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-blink-features=AutomationControlled")
 
-    # Use system-installed Chromium path
+    # Try common Chromium paths
     chrome_bin = os.environ.get("CHROME_BIN", "/usr/bin/chromium")
-    if not os.path.exists(chrome_bin):
-        raise Exception(f"Chrome/Chromium binary not found at {chrome_bin}")
-    options.binary_location = chrome_bin
+    if os.path.exists(chrome_bin):
+        options.binary_location = chrome_bin
+    else:
+        raise Exception("Chrome/Chromium binary not found")
 
-    # Use system-installed chromedriver
-    chromedriver_path = "/usr/bin/chromedriver"
-    if not os.path.exists(chromedriver_path):
-        raise Exception(f"ChromeDriver not found at {chromedriver_path}")
-    service = ChromeService(chromedriver_path)
-
+    # Use chromedriver installed by webdriver-manager
+    service = ChromeService(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(60)
     return driver
@@ -70,8 +67,7 @@ def get_post_links(driver, limit=50):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(2)
         new_height = driver.execute_script("return document.body.scrollHeight")
-        if new_height == last_height:
-            break
+        if new_height == last_height: break
         last_height = new_height
     return list(links)[:limit]
 
@@ -105,7 +101,6 @@ def extract_info(driver, post_url):
                     meta_desc = driver.find_element(By.XPATH, '//meta[@name="description"]').get_attribute('content')
                     bio = meta_desc
                 except: bio = ""
-        except: bio = ""
 
     numbers = re.findall(r'\+?\d[\d\s\-\(\)]{7,}\d', bio + " " + caption)
     numbers = list(dict.fromkeys(numbers))
