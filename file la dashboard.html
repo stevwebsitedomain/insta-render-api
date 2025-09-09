@@ -219,6 +219,7 @@
         .page-title span {
             background: linear-gradient(135deg, #833AB4, #E1306C);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -943,12 +944,12 @@
         container.style.opacity = '0.5';
 
         try {
-            const apiUrl = "https://insta-render-api-2.onrender.com/scrape";
+            const apiUrl = "https://f7526e8f183e.ngrok-free.app/scrape";
 
             const response = await fetch(apiUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ hashtag, limit: 5 }) // small limit to avoid timeout
+                body: JSON.stringify({ hashtags: [hashtag], limit: 5 }) // Fixed: hashtags as array
             });
 
             if (!response.ok) {
@@ -956,13 +957,13 @@
                 throw new Error(`HTTP ${response.status}: ${text}`);
             }
 
-            const data = await response.json();
+            const result = await response.json();
 
             const resultsGrid = document.getElementById('results-grid');
             resultsGrid.innerHTML = "";
 
-            if (Array.isArray(data) && data.length > 0) {
-                data.forEach(item => {
+            if (result.success && result.data && result.data.length > 0) {
+                result.data.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'result-card';
                     card.innerHTML = `
@@ -972,9 +973,9 @@
                     `;
                     resultsGrid.appendChild(card);
                 });
-                showNotification(`Found ${data.length} results for #${hashtag}`);
-            } else if (data.error) {
-                showNotification(data.error, "error");
+                showNotification(`Found ${result.data.length} results for #${hashtag}`);
+            } else if (result.error) {
+                showNotification(result.error, "error");
             } else {
                 showNotification('No results found', 'error');
             }
